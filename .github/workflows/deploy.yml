@@ -16,7 +16,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'  # Вкажіть вашу версію Python
+          python-version: '3.10'
 
       - name: Install Dependencies
         run: |
@@ -32,6 +32,16 @@ jobs:
           port: 22
           source: "."
           target: ${{ secrets.VM_PATH }}
+          timeout: 30s
+          command_timeout: 10m
+          use_insecure_cipher: false
+          rm: false
+          debug: false
+          strip_components: 0
+          overwrite: false
+          proxy_port: 22
+          proxy_timeout: 30s
+          proxy_use_insecure_cipher: false
 
       - name: Execute Remote Commands
         uses: appleboy/ssh-action@v0.1.6
@@ -44,3 +54,11 @@ jobs:
             cd ${{ secrets.VM_PATH }}
             pip install -r requirements.txt
             systemctl restart secret_santa_bot.service
+
+      - name: Notify Success
+        if: success()
+        run: echo "Deployment successful!"
+
+      - name: Notify Failure
+        if: failure()
+        run: echo "Deployment failed!"
