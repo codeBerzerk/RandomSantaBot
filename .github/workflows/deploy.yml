@@ -51,9 +51,11 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           port: 22
           script: |
-            cd ${{ secrets.VM_PATH }}
+            cd /home/ubuntu/randomSantaBot
+            source venv/bin/activate
+            pip install --upgrade pip
             pip install -r requirements.txt
-            systemctl restart secret_santa_bot.service
+            sudo systemctl restart secret_santa_bot.service
 
       - name: Notify Success
         if: success()
