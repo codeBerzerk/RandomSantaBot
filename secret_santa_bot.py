@@ -18,9 +18,8 @@ import logging
 # Завантаження змінних середовища
 load_dotenv()
 
-# Отримання токена
+# Отримання токена з .env
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-
 if not TOKEN:
     raise ValueError("TELEGRAM_BOT_TOKEN не встановлено у змінних середовища.")
 
@@ -37,21 +36,28 @@ logger = logging.getLogger(__name__)
 # Шлях до файлу JSON
 DATA_FILE = "participants.json"
 
-# Початкові дані
+# Початкові дані з новими учасниками та кольорами
 initial_data = {
     "participants": [
-        {"name": "Віка", "approved": False, "user_id": None, "assigned_to": None, "color": None},
-        {"name": "Коля", "approved": False, "user_id": None, "assigned_to": None, "color": None},
-        {"name": "Дана", "approved": False, "user_id": None, "assigned_to": None, "color": None},
-        {"name": "Костя", "approved": False, "user_id": None, "assigned_to": None, "color": None},
-        {"name": "Люда", "approved": False, "user_id": None, "assigned_to": None, "color": None},
-        {"name": "Ярік", "approved": False, "user_id": None, "assigned_to": None, "color": None},
-        {"name": "Олена", "approved": False, "user_id": None, "assigned_to": None, "color": None},
-        {"name": "Даня", "approved": False, "user_id": None, "assigned_to": None, "color": None}
+        {"name": "Віка",   "approved": False, "user_id": None, "assigned_to": None, "color": None},
+        {"name": "Коля",   "approved": False, "user_id": None, "assigned_to": None, "color": None},
+        {"name": "Дана",   "approved": False, "user_id": None, "assigned_to": None, "color": None},
+        {"name": "Костя",  "approved": False, "user_id": None, "assigned_to": None, "color": None},
+        {"name": "Люда",   "approved": False, "user_id": None, "assigned_to": None, "color": None},
+        {"name": "Ярік",   "approved": False, "user_id": None, "assigned_to": None, "color": None},
+        {"name": "Олена",  "approved": False, "user_id": None, "assigned_to": None, "color": None},
+        {"name": "Даня",   "approved": False, "user_id": None, "assigned_to": None, "color": None},
+
+        # Нові учасники
+        {"name": "Славік", "approved": False, "user_id": None, "assigned_to": None, "color": None},
+        {"name": "Настя",  "approved": False, "user_id": None, "assigned_to": None, "color": None}
     ],
     "colors": [
         "Чорний 🖤", "Червоний ❤️", "Синій 💙", "Рожевий 💖",
-        "Жовтий 💛", "Зелений 💚", "Білий 🤍", "Фіолетовий 💜"
+        "Жовтий 💛", "Зелений 💚", "Білий 🤍", "Фіолетовий 💜",
+
+        # Нові кольори
+        "Помаранчевий 🧡", "Коричневий 🤎"
     ]
 }
 
@@ -141,7 +147,7 @@ async def handle_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⚠️ Це ім'я вже вибрано або не знайдено. Спробуйте ще раз.")
         logger.warning(f"Користувач {user_id} спробував обрати ім'я {user_name}, яке вже вибране або не існує.")
 
-# Обробка підтвердження
+# Обробка підтвердження (Inline кнопки)
 async def handle_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -162,7 +168,7 @@ async def handle_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE
         return
 
     if action == "confirm":
-        # Перевірка, чи користувач вже обрав ім'я (на випадок, якщо між вибором і підтвердженням хтось інший обрав те саме ім'я)
+        # Перевірка, чи користувач уже обрав ім'я
         existing_selection = next((p for p in data["participants"] if p["user_id"] == user_id), None)
         if existing_selection:
             await query.edit_message_text(
@@ -197,6 +203,7 @@ async def handle_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE
             logger.warning("Немає доступних учасників або кольорів для призначення.")
             return
 
+        # Випадковий вибір з доступних
         assigned_participant = random.choice(remaining_participants)
         assigned_color = random.choice(remaining_colors)
         logger.info(f"Призначено колір {assigned_color} для {assigned_participant['name']} від {name}.")
@@ -205,7 +212,7 @@ async def handle_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE
         assigned_participant["assigned_to"] = name
         assigned_participant["color"] = assigned_color
         data["colors"].remove(assigned_color)
-        logger.info(f"Кольор {assigned_color} видалено з доступних кольорів.")
+        logger.info(f"Колір {assigned_color} видалено з доступних кольорів.")
 
         # Додавання інформації про призначення до вибраного користувача
         participant["assigned_to"] = assigned_participant["name"]
